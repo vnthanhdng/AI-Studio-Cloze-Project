@@ -22,3 +22,9 @@ export interface InputBoxProps {
     targetWords?: string[];
     showFeedback?: boolean;
   }
+
+  export interface TestContent {
+    text: string;
+    targetWords: string[];
+    type: 'ctest' | 'cloze';
+  }
