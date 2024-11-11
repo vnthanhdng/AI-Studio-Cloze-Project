@@ -62,7 +62,7 @@ export const Word: React.FC<WordProps> = ({
     return <span className="mx-0.5">{word}</span>;
   }
 
-  const revealedCount = type === "ctest" ? Math.ceil(letters.length / 2) : 0;
+  const revealedCount = type === "ctest" ? Math.floor(letters.length / 2) : 0;
 
   return (
     <span className="inline-flex items-center gap-0.5 mx-0.5">
