@@ -14,6 +14,7 @@ export interface InputBoxProps {
     onComplete?: (completed: boolean) => void;
     showFeedback?: boolean;
     isTarget?: boolean;
+    isResetting?: boolean;
   }
   
   export interface TextTestingComponentProps {

@@ -1,19 +1,34 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { WordProps } from '@/types';
 import { InputBox } from './InputBox';
 import { DisplayBox } from './DisplayBox';
 
-export const Word: React.FC<WordProps> = ({
+export const Word = forwardRef<{ checkAnswer: () => boolean }, WordProps>(({
   word,
   type = "ctest",
-  onComplete,
   showFeedback = false,
-  isTarget = false
-}) => {
+  isTarget = false,
+  isResetting = false
+}, ref) => {
   const letters = word.split('');
   const [userInput, setUserInput] = useState<string[]>(Array(letters.length).fill(''));
   const [isCorrect, setIsCorrect] = useState<boolean[]>(Array(letters.length).fill(false));
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  useEffect(() => {
+    if (isResetting) {
+      setUserInput(Array(letters.length).fill(''));
+      setIsCorrect(Array(letters.length).fill(false));
+    }
+  }, [isResetting, letters.length]);
+
+  useImperativeHandle(ref, () => ({
+    checkAnswer: () => {
+      return userInput.every((letter, idx) => 
+        letter.toLowerCase() === letters[idx].toLowerCase()
+      );
+    }
+  }));
 
   useEffect(() => {
     inputRefs.current = inputRefs.current.slice(0, letters.length);
@@ -27,10 +42,6 @@ export const Word: React.FC<WordProps> = ({
     const newIsCorrect = [...isCorrect];
     newIsCorrect[index] = value.toLowerCase() === letters[index].toLowerCase();
     setIsCorrect(newIsCorrect);
-
-    if (newInput.every((letter, idx) => letter.toLowerCase() === letters[idx].toLowerCase())) {
-      onComplete?.(true);
-    }
   };
 
   const focusInput = (index: number) => {
@@ -53,7 +64,6 @@ export const Word: React.FC<WordProps> = ({
     }
   };
 
-  // Ref callback to store input references
   const setInputRef = (index: number) => (el: HTMLInputElement | null) => {
     inputRefs.current[index] = el;
   };
@@ -65,7 +75,7 @@ export const Word: React.FC<WordProps> = ({
   const revealedCount = type === "ctest" ? Math.floor(letters.length / 2) : 0;
 
   return (
-    <span className="inline-flex items-center gap-0.5 mx-0.5">
+    <span className="inline-flex items-center gap-0.5 mx-0.5 transition-opacity duration-300">
       {type === "ctest" ? (
         letters.map((letter, index) => (
           index < revealedCount ? (
@@ -99,4 +109,6 @@ export const Word: React.FC<WordProps> = ({
       )}
     </span>
   );
-};
+});
+
+Word.displayName = 'Word';
