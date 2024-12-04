@@ -6,7 +6,8 @@ import { cn } from '@/lib/utils';
 
 export const TextTestingComponent: React.FC<TextTestingComponentProps> = ({
   text, 
-  type = 'ctest'
+  type = 'ctest',
+  gapFrequency = 6
 }) => {
   const [showFeedback, setShowFeedback] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
@@ -57,7 +58,7 @@ export const TextTestingComponent: React.FC<TextTestingComponentProps> = ({
       if (part.trim()) {
         const shouldTarget = !isFirstSentence && 
                            isContentWord(part) && 
-                           wordCounter % 2 === 1;
+                           wordCounter % gapFrequency === gapFrequency - 1;
         words.push({ text: part, isTarget: shouldTarget });
         wordCounter++;
       }
@@ -65,6 +66,35 @@ export const TextTestingComponent: React.FC<TextTestingComponentProps> = ({
 
     return words;
   };
+
+  const renderWord = (
+    wordObj: { text: string; isTarget: boolean },
+    pIndex: number,
+    wIndex: number,
+    section: string
+  ) => (
+    <Word
+      key={`${pIndex}-${section}-${wIndex}`}
+      ref={setWordRef(`${pIndex}-${section}-${wIndex}`, wordObj)}
+      word={wordObj.text}
+      isTarget={wordObj.isTarget}
+      showFeedback={showFeedback}
+      type={type}
+      isResetting={isResetting}
+      className={cn(
+        // Only show feedback colors after submit is clicked
+        showFeedback && wordObj.isTarget && "transition-colors duration-300",
+        // No background color until feedback is shown
+        !showFeedback && wordObj.isTarget && "bg-gray-100",
+        // After submit, show green for correct and red for incorrect
+        showFeedback && wordObj.isTarget && "border-2",
+        showFeedback && wordObj.isTarget && {
+          'bg-green-100 border-green-500': wordsRef.current.get(`${pIndex}-${section}-${wIndex}`)?.checkAnswer(),
+          'bg-red-100 border-red-500': !wordsRef.current.get(`${pIndex}-${section}-${wIndex}`)?.checkAnswer()
+        }
+      )}
+    />
+  );
 
   const setWordRef = (key: string, wordObj: { isTarget: boolean }) => (el: { checkAnswer: () => boolean } | null) => {
     if (el && wordObj.isTarget) {
@@ -84,51 +114,32 @@ export const TextTestingComponent: React.FC<TextTestingComponentProps> = ({
       )}>
         <article className="prose prose-slate max-w-none">
           {paragraphs.map((paragraph, pIndex) => {
-            if (!isFirstParagraphProcessed && type === 'ctest') {
+            if (!isFirstParagraphProcessed) {
               isFirstParagraphProcessed = true;
               const { firstSentence, rest } = splitFirstSentence(paragraph);
               
               return (
                 <p key={pIndex} className="mb-4">
-                  {firstSentence && processText(firstSentence, true).map((wordObj, wIndex) => (
-                    <Word
-                      key={`${pIndex}-first-${wIndex}`}
-                      ref={setWordRef(`${pIndex}-first-${wIndex}`, wordObj)}
-                      word={wordObj.text}
-                      isTarget={false}
-                      showFeedback={showFeedback}
-                      type={type}
-                      isResetting={isResetting}
-                    />
-                  ))}
-                  {rest && processText(rest, false).map((wordObj, wIndex) => (
-                    <Word
-                      key={`${pIndex}-rest-${wIndex}`}
-                      ref={setWordRef(`${pIndex}-rest-${wIndex}`, wordObj)}
-                      word={wordObj.text}
-                      isTarget={wordObj.isTarget}
-                      showFeedback={showFeedback}
-                      type={type}
-                      isResetting={isResetting}
-                    />
-                  ))}
+                  {firstSentence && processText(firstSentence, true).map((wordObj, wIndex) => 
+                    renderWord(
+                      { ...wordObj, isTarget: false },
+                      pIndex,
+                      wIndex,
+                      'first'
+                    )
+                  )}
+                  {rest && processText(rest, false).map((wordObj, wIndex) =>
+                    renderWord(wordObj, pIndex, wIndex, 'rest')
+                  )}
                 </p>
               );
             }
 
             return (
               <p key={pIndex} className="mb-4">
-                {processText(paragraph, false).map((wordObj, wIndex) => (
-                  <Word
-                    key={`${pIndex}-${wIndex}`}
-                    ref={setWordRef(`${pIndex}-${wIndex}`, wordObj)}
-                    word={wordObj.text}
-                    isTarget={wordObj.isTarget}
-                    showFeedback={showFeedback}
-                    type={type}
-                    isResetting={isResetting}
-                  />
-                ))}
+                {processText(paragraph, false).map((wordObj, wIndex) =>
+                  renderWord(wordObj, pIndex, wIndex, 'normal')
+                )}
               </p>
             );
           })}

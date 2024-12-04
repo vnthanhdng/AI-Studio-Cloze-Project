@@ -9,12 +9,15 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@radix-ui/react-tabs": "^1.1.1",
     "clsx": "^2.1.1",
+    "lucide-react": "^0.464.0",
     "next": "15.0.2",
+    "openai": "^4.75.0",
     "react": "19.0.0-rc-02c0e824-20241028",
     "react-dom": "19.0.0-rc-02c0e824-20241028",
     "stopword": "^3.1.1",
-    "tailwind-merge": "^2.5.4"
+    "tailwind-merge": "^2.5.5"
   },
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.15",

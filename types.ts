@@ -15,6 +15,7 @@ export interface InputBoxProps {
     showFeedback?: boolean;
     isTarget?: boolean;
     isResetting?: boolean;
+    className?: string;
   }
   
   export interface TextTestingComponentProps {
@@ -22,6 +23,7 @@ export interface InputBoxProps {
     type?: 'ctest' | 'cloze';
     targetWords?: string[];
     showFeedback?: boolean;
+    gapFrequency?: number;
   }
 
   export interface TestContent {
